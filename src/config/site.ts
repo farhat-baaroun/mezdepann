@@ -9,6 +9,5 @@ export const SITE = {
   phone: '+33766463392',
   phoneDisplay: '07 66 46 33 92',
   email: 'contact@mezdepann.fr',
-  snapchat: 'mez9.2',
 } as const;
 

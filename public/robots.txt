@@ -1,0 +1,9 @@
+# robots.txt for mezdepann.fr
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://mezdepann.fr/sitemap.xml
+
