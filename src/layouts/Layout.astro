@@ -1,6 +1,7 @@
 ---
 import { SITE } from '../config/site';
 import { schema } from '../config/schema';
+import Analytics from '@vercel/analytics/astro';
 import '../styles/global.css';
 import '../styles/hero.css';
 
@@ -70,6 +71,9 @@ const canonicalURL = new URL(Astro.url.pathname, SITE.url);
 
     <!-- Schema.org JSON-LD -->
     <script type="application/ld+json" is:inline set:html={JSON.stringify(schema)} />
+
+    <!-- Vercel Web Analytics -->
+    <Analytics />
   </head>
   <body>
     <slot />
