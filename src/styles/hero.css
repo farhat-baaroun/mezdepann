@@ -1,0 +1,14 @@
+/* Hero Section Custom Styles */
+.hero-gradient {
+  background: linear-gradient(135deg, #0a0a0a 0%, #141414 50%, #1a1a1a 100%);
+}
+
+.image-overlay {
+  background: linear-gradient(
+    to right,
+    rgba(10, 10, 10, 0.95) 0%,
+    rgba(10, 10, 10, 0.7) 50%,
+    rgba(10, 10, 10, 0.3) 100%
+  );
+}
+

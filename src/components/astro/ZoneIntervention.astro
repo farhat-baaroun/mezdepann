@@ -1,0 +1,45 @@
+---
+const departments = [
+  'Paris (75)',
+  'Hauts-de-Seine (92)',
+  'Seine-Saint-Denis (93)',
+  'Val-de-Marne (94)',
+  'Yvelines (78)',
+  'Essonne (91)',
+  'Seine-et-Marne (77)',
+  "Val-d'Oise (95)",
+];
+---
+
+<section class="py-24 bg-charcoal" id="zone-intervention">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-charcoal border border-white/5 rounded-2xl p-8">
+      <h3 class="text-2xl font-bold text-white mb-6">Zone d'Intervention</h3>
+      <p class="text-gray-500 mb-6">
+        Nous intervenons dans toute l'Île-de-France avec 15 dépanneurs disponibles 24h/24.
+      </p>
+
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        {departments.map((dept) => (
+          <div class="flex items-center gap-2 text-gray-300">
+            <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+            </svg>
+            {dept}
+          </div>
+        ))}
+      </div>
+
+      <div class="p-4 bg-accent/10 border border-accent/20 rounded-lg">
+        <p class="text-accent text-sm font-medium mb-1">Intervention rapide</p>
+        <p class="text-gray-400 text-sm">Délai moyen : 30-60 minutes selon votre localisation</p>
+      </div>
+    </div>
+  </div>
+</section>
+

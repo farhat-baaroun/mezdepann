@@ -1,0 +1,74 @@
+---
+import { Image } from 'astro:assets';
+import vehiculeHs from '../../assets/images/vehicule-hs.jpg';
+import vehiculeAccidente from '../../assets/images/vehicule-accidente.jpg';
+import vehiculeSansCt from '../../assets/images/vehicule-sans-ct.jpg';
+import vehiculeBrule from '../../assets/images/vehicule-brule.jpg';
+import vehiculeImmerge from '../../assets/images/vehicule-immerge.jpg';
+import vehicule2roues from '../../assets/images/vehicule-2roues.jpg';
+import vehiculePapiers from '../../assets/images/vehicule-papiers.jpg';
+import vehiculePlus from '../../assets/images/vehicule-plus.jpg';
+
+const vehicles = [
+  { image: vehiculeHs, title: 'Hors Service', description: 'Moteur cassé', alt: 'Véhicule hors service' },
+  { image: vehiculeAccidente, title: 'Accidentés', description: 'Choc, sinistre', alt: 'Véhicule accidenté' },
+  {
+    image: vehiculeSansCt,
+    title: 'Sans CT',
+    description: 'Contrôle technique',
+    alt: 'Véhicule sans contrôle technique',
+  },
+  { image: vehiculeBrule, title: 'Brûlés', description: 'Incendie', alt: 'Véhicule brûlé' },
+  { image: vehiculeImmerge, title: 'Immergés', description: 'Inondation', alt: 'Véhicule inondé' },
+  { image: vehicule2roues, title: '2 Roues', description: 'Moto, scooter', alt: 'Moto et scooter' },
+  { image: vehiculePapiers, title: 'Papiers', description: 'Carte grise', alt: 'Problème de papiers' },
+  {
+    image: vehiculePlus,
+    title: '& Plus',
+    description: 'Demandez-nous',
+    alt: 'Utilitaire et autres véhicules',
+  },
+];
+---
+
+<section class="py-24 bg-charcoal" id="vehicules">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="text-center mb-16">
+      <span
+        class="inline-block px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-gray-400 mb-4"
+      >
+        Véhicules Acceptés
+      </span>
+      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Tous Types de Véhicules</h2>
+      <p class="text-gray-500 max-w-2xl mx-auto">
+        Quel que soit l'état de votre véhicule, nous avons une solution.
+      </p>
+    </div>
+
+    <!-- Vehicles Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {vehicles.map((vehicle) => (
+        <div class="card-hover group relative overflow-hidden rounded-xl aspect-square">
+          <Image
+            src={vehicle.image}
+            alt={vehicle.alt}
+            width={600}
+            height={600}
+            format="webp"
+            quality={70}
+            loading="lazy"
+            decoding="async"
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-4">
+            <h3 class="font-semibold text-white">{vehicle.title}</h3>
+            <p class="text-sm text-gray-400">{vehicle.description}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
