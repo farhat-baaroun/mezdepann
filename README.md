@@ -2,10 +2,20 @@
 
 Site web haute conversion pour service d'épaviste agréé en Île-de-France, migré vers Astro.js avec optimisations de performance et SEO.
 
+## 🛠️ Stack Technique
+
+- **Astro**: 5.17.1
+- **React**: 19.2.4
+- **TypeScript**: 5.6.2
+- **Tailwind CSS**: 3.4.17
+- **@astrojs/react**: 4.4.2
+- **@astrojs/tailwind**: 6.0.2
+- **@astrojs/vercel**: 9.0.4 (pour Actions SSR)
+
 ## 🚀 Déploiement
 
 - **URL**: https://mezdepann.fr
-- **Hébergement**: Vercel (Static Site Generation)
+- **Hébergement**: Vercel (Static Site Generation avec Actions SSR)
 - **Performance**: Optimisé pour Lighthouse 95-100
 
 ## 📁 Structure
@@ -58,6 +68,7 @@ mezdepann/
 
 ### Build
 - **Static Site Generation** (`output: 'static'`)
+- **Actions SSR**: Utilise l'adaptateur Vercel pour les Actions (formulaires côté serveur)
 - **CSS inlining** (`inlineStylesheets: 'auto'`)
 - **Code splitting** manuel pour React
 - **Minification** (JS, CSS, HTML)
@@ -71,11 +82,11 @@ mezdepann/
 
 ### JavaScript
 - Chunks séparés:
-  - `react-vendor` (~45KB gzipped)
-  - `component-Header` (~0.8KB gzipped)
-  - `component-ContactForm` (~1.9KB gzipped)
+  - `react-vendor` (~60KB gzipped avec React 19)
+  - `component-ContactForm` (~3KB gzipped)
 - Tree shaking activé
 - Target: ES2020
+- React 19 avec optimisations de performance
 
 ### CSS
 - Critical CSS inliné dans `<head>`
@@ -139,8 +150,20 @@ pnpm build
 ```
 
 ### Preview
+> **Note**: `pnpm preview` n'est pas disponible avec l'adaptateur Vercel car il nécessite un environnement serverless. Utilisez `pnpm dev` pour le développement local et déployez sur Vercel pour tester le build de production.
+
+Pour tester le build de production localement, vous pouvez utiliser Vercel CLI :
 ```bash
-pnpm preview
+# Installer Vercel CLI (si pas déjà installé)
+npm i -g vercel
+
+# Prévisualiser le build localement
+vercel dev
+```
+
+Ou déployer sur Vercel pour tester en environnement de production :
+```bash
+vercel
 ```
 
 ## 📊 Métriques de Performance
@@ -153,9 +176,8 @@ pnpm preview
 - **CLS**: < 0.1
 
 ### Bundle Sizes
-- React vendor: ~45KB (gzipped)
-- Header component: ~0.8KB (gzipped)
-- ContactForm: ~1.9KB (gzipped)
+- React vendor: ~60KB (gzipped avec React 19)
+- ContactForm: ~3KB (gzipped)
 - Images: Optimisées en WebP (réduction moyenne 50-60%)
 
 ## 🎯 Fonctionnalités
@@ -165,7 +187,7 @@ pnpm preview
 - Endpoint API `/api/contact`
 - États de chargement
 - Messages de succès/erreur
-- TODO: Intégration service email (Resend/SendGrid)
+- Intégration email avec Resend et React Email
 
 ### Responsive
 - Mobile-first

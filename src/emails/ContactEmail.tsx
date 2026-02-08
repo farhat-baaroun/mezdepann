@@ -36,8 +36,12 @@ export const ContactEmail = ({
     <Preview>Nouvelle demande de contact depuis le site web</Preview>
     <Body style={main}>
       <Container style={container}>
+        {/* Accent bar */}
+        <div style={accentBar}></div>
+        
         {/* Header with logos */}
         <Section style={headerSection}>
+          <Text style={title}>Nouvelle demande de contact</Text>
           <Row>
             <Column style={logoColumn}>
               <Img
@@ -61,7 +65,6 @@ export const ContactEmail = ({
         </Section>
 
         <Section style={contentSection}>
-          <Text style={title}>Nouvelle demande de contact</Text>
           <Text style={text}>
             Vous avez reçu une nouvelle demande de contact depuis le site web MezDepann.
           </Text>
@@ -139,20 +142,28 @@ const main = {
   backgroundColor: '#0a0a0a',
   color: '#ffffff',
   fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"',
+    '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"',
 };
 
 const container = {
   maxWidth: '600px',
   margin: '0 auto',
-  padding: '20px',
-  backgroundColor: '#1a1a1a',
+  backgroundColor: '#141414',
+  borderRadius: '8px',
+  overflow: 'hidden',
+};
+
+const accentBar = {
+  height: '4px',
+  backgroundColor: '#2563eb',
+  width: '100%',
 };
 
 const headerSection = {
-  padding: '20px 0',
+  padding: '30px 20px',
   textAlign: 'center' as const,
-  borderBottom: '2px solid #22c55e',
+  backgroundColor: '#141414',
+  borderBottom: '1px solid #262626',
 };
 
 const logoColumn = {
@@ -167,55 +178,64 @@ const logo = {
 };
 
 const contentSection = {
-  padding: '30px 20px',
+  padding: '40px 30px',
+  backgroundColor: '#141414',
 };
 
 const title = {
   fontSize: '24px',
   fontWeight: 'bold',
-  color: '#22c55e',
+  color: '#2563eb',
   marginBottom: '20px',
   textAlign: 'center' as const,
+  letterSpacing: '-0.5px',
 };
 
 const text = {
   fontSize: '16px',
-  lineHeight: '1.6',
+  lineHeight: '1.7',
   color: '#e5e5e5',
-  marginBottom: '15px',
+  marginBottom: '20px',
 };
 
 const divider = {
-  borderColor: '#333333',
+  borderColor: '#262626',
   margin: '20px 0',
 };
 
 const infoSection = {
-  marginBottom: '15px',
+  marginBottom: '20px',
+  backgroundColor: '#1a1a1a',
+  border: '1px solid #262626',
+  borderRadius: '6px',
+  padding: '16px',
 };
 
 const label = {
-  fontSize: '14px',
-  fontWeight: 'bold',
-  color: '#22c55e',
-  marginBottom: '5px',
+  fontSize: '13px',
+  fontWeight: '600',
+  color: '#2563eb',
+  marginBottom: '6px',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.5px',
 };
 
 const value = {
   fontSize: '16px',
   color: '#ffffff',
-  marginTop: '5px',
-  paddingLeft: '10px',
+  marginTop: '4px',
+  fontWeight: '500',
 };
 
 const footerSection = {
-  padding: '20px',
+  padding: '30px',
   textAlign: 'center' as const,
   backgroundColor: '#0a0a0a',
+  borderTop: '1px solid #262626',
 };
 
 const footerText = {
-  fontSize: '12px',
-  color: '#888888',
+  fontSize: '13px',
+  color: '#737373',
   lineHeight: '1.6',
 };
