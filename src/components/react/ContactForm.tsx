@@ -1,63 +1,64 @@
-import { memo, useState } from 'react';
-import type { FormEvent } from 'react';
+import { memo, useActionState, useEffect, useRef } from 'react';
+import { actions } from 'astro:actions';
+import { withState } from '@astrojs/react/actions';
+import type { SafeResult } from 'astro:actions';
+import { toast } from 'sonner';
 import { SITE } from '../../config/site';
 
+type ContactFormResponse = {
+  success: boolean;
+  message: string;
+};
+
+type ContactFormState = SafeResult<ContactFormResponse, ContactFormResponse>;
+
 const ContactForm = memo(function ContactForm() {
-  const [formData, setFormData] = useState({
-    nom: '',
-    telephone: '',
-    email: '',
-    vehicule: '',
-    etat: '',
-    message: '',
-  });
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
+  const initialState: ContactFormState = { data: undefined, error: undefined };
+  
+  const [state, action, pending] = useActionState(
+    withState(actions.contact),
+    initialState
+  );
+  
+  // Track previous state to avoid duplicate toasts
+  const prevStateRef = useRef<ContactFormState>(initialState);
+  const hasShownToastRef = useRef(false);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStatus('loading');
-    setErrorMessage('');
-
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+  useEffect(() => {
+    const prevState = prevStateRef.current;
+    
+    // Handle success - only show once when success changes from false/undefined to true
+    if (state?.data && !prevState?.data) {
+      const message = state.data.message || 'Votre demande a été envoyée avec succès ! Nous vous recontacterons rapidement.';
+      toast.success(message, {
+        duration: 4000,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Une erreur est survenue');
-      }
-
-      setStatus('success');
-      setFormData({
-        nom: '',
-        telephone: '',
-        email: '',
-        vehicule: '',
-        etat: '',
-        message: '',
-      });
-    } catch (error) {
-      setStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : 'Une erreur est survenue');
+      hasShownToastRef.current = true;
     }
-  };
 
+    // Handle errors - only show when error appears or changes
+    if (state?.error) {
+      const prevErrorMessage = prevState?.error?.message || prevState?.error?.toString();
+      const currentErrorMessage = state.error?.message || state.error?.toString();
+      
+      // Only show toast if error message changed or if there was no previous error
+      if (!prevState?.error || prevErrorMessage !== currentErrorMessage) {
+        const errorMessage = currentErrorMessage || 'Une erreur est survenue. Veuillez réessayer.';
+        toast.error(errorMessage, {
+          duration: 6000,
+        });
+        hasShownToastRef.current = true;
+      }
+    }
+
+    // Reset toast flag when state resets
+    if (!state?.data && !state?.error && hasShownToastRef.current) {
+      hasShownToastRef.current = false;
+    }
+
+    // Update previous state
+    prevStateRef.current = state || initialState;
+  }, [state]);
   return (
     <section className="py-24 bg-dark" id="contact">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,7 +70,7 @@ const ContactForm = memo(function ContactForm() {
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">Besoin d'un Épaviste ?</h2>
             <p className="text-gray-500 mb-8">
-              Contactez-nous maintenant pour un devis gratuit. Disponible 24h/24, 7j/7.
+              Contactez-nous maintenant. Disponible 24h/24, 7j/7.
             </p>
 
             <div className="space-y-4">
@@ -141,16 +142,16 @@ const ContactForm = memo(function ContactForm() {
           <div className="bg-charcoal border border-white/10 rounded-2xl p-8 md:p-12">
             <div className="text-center mb-8">
               <span className="inline-block px-4 py-2 bg-accent/10 border border-accent/20 rounded-full text-sm text-accent mb-4">
-                Devis Gratuit
+                Contact
               </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Demandez un Devis</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Contactez-nous</h2>
               <p className="text-gray-400">
                 Remplissez le formulaire ci-dessous et nous vous recontacterons dans les plus brefs
                 délais.
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form action={action} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="nom" className="block text-sm font-medium text-gray-300 mb-2">
@@ -161,8 +162,6 @@ const ContactForm = memo(function ContactForm() {
                     id="nom"
                     name="nom"
                     required
-                    value={formData.nom}
-                    onChange={handleChange}
                     className="w-full px-4 py-3 bg-dark border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
                     placeholder="Votre nom"
                   />
@@ -179,8 +178,6 @@ const ContactForm = memo(function ContactForm() {
                     id="telephone"
                     name="telephone"
                     required
-                    value={formData.telephone}
-                    onChange={handleChange}
                     className="w-full px-4 py-3 bg-dark border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
                     placeholder="06 12 34 56 78"
                   />
@@ -196,8 +193,6 @@ const ContactForm = memo(function ContactForm() {
                   id="email"
                   name="email"
                   required
-                  value={formData.email}
-                  onChange={handleChange}
                   className="w-full px-4 py-3 bg-dark border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
                   placeholder="votre@email.fr"
                 />
@@ -211,8 +206,6 @@ const ContactForm = memo(function ContactForm() {
                   id="vehicule"
                   name="vehicule"
                   required
-                  value={formData.vehicule}
-                  onChange={handleChange}
                   className="w-full px-4 py-3 bg-dark border border-white/10 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
                 >
                   <option value="">Sélectionnez un type</option>
@@ -231,8 +224,6 @@ const ContactForm = memo(function ContactForm() {
                   id="etat"
                   name="etat"
                   required
-                  value={formData.etat}
-                  onChange={handleChange}
                   className="w-full px-4 py-3 bg-dark border border-white/10 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
                 >
                   <option value="">Sélectionnez l'état</option>
@@ -253,31 +244,17 @@ const ContactForm = memo(function ContactForm() {
                   id="message"
                   name="message"
                   rows={4}
-                  value={formData.message}
-                  onChange={handleChange}
                   className="w-full px-4 py-3 bg-dark border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors resize-none"
                   placeholder="Décrivez votre situation..."
                 />
               </div>
 
-              {status === 'success' && (
-                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm">
-                  Votre demande a été envoyée avec succès ! Nous vous recontacterons rapidement.
-                </div>
-              )}
-
-              {status === 'error' && (
-                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-                  {errorMessage || 'Une erreur est survenue. Veuillez réessayer.'}
-                </div>
-              )}
-
               <button
                 type="submit"
-                disabled={status === 'loading'}
+                disabled={pending}
                 className="w-full btn-primary py-4 px-6 rounded-lg font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {status === 'loading' ? (
+                {pending ? (
                   'Envoi en cours...'
                 ) : (
                   <>

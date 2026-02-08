@@ -2,19 +2,24 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 
+import vercel from '@astrojs/vercel';
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://mezdepann.fr',
   output: 'static',
+
   integrations: [
     react(),
     tailwind({
       applyBaseStyles: false,
     }),
   ],
+
   build: {
     inlineStylesheets: 'auto',
   },
+
   vite: {
     build: {
       cssMinify: true,
@@ -53,7 +58,9 @@ export default defineConfig({
       include: ['react', 'react-dom'],
     },
   },
+
   compressHTML: true,
+
   image: {
     service: {
       entrypoint: 'astro/assets/services/sharp',
@@ -62,5 +69,6 @@ export default defineConfig({
       },
     },
   },
-});
 
+  adapter: vercel(),
+});

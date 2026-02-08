@@ -2,6 +2,7 @@
 import { SITE } from '../config/site';
 import { schema } from '../config/schema';
 import Analytics from '@vercel/analytics/astro';
+import Toaster from '../components/react/Toaster';
 import '../styles/global.css';
 import '../styles/hero.css';
 
@@ -77,6 +78,7 @@ const canonicalURL = new URL(Astro.url.pathname, SITE.url);
   </head>
   <body>
     <slot />
+    <Toaster client:load />
   </body>
 </html>
 

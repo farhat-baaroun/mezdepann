@@ -4,7 +4,7 @@ export const SITE = {
   url: 'https://mezdepann.fr',
   lang: 'fr',
   ogLocale: 'fr_FR',
-  keywords: 'épaviste, enlèvement épave, rachat véhicule, épaviste agréé Paris, enlèvement gratuit, véhicule accidenté, carte grise',
+  keywords: 'épaviste,épaviste Paris, enlèvement épave, rachat véhicule, épaviste agréé Paris, enlèvement gratuit, véhicule accidenté, carte grise',
   author: 'MezDepann',
   phone: '+33766463392',
   phoneDisplay: '07 66 46 33 92',
