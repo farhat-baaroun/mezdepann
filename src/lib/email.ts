@@ -8,25 +8,20 @@ interface EmailData {
 
 class EmailService {
   private resend: Resend | null = null;
-  private provider: 'resend' | 'smtp';
   private fromEmail: string;
 
   constructor() {
-    this.provider = (import.meta.env.EMAIL_PROVIDER || 'resend') as 'resend' | 'smtp';
-    this.fromEmail = import.meta.env.EMAIL_FROM || 'contact@mezdepann.fr';
-    if (this.provider === 'resend') {
+    this.fromEmail = import.meta.env.EMAIL_FROM ;
       const apiKey = import.meta.env.RESEND_API_KEY;
       if (!apiKey) {
         console.warn('RESEND_API_KEY not found, email sending will fail');
       } else {
         this.resend = new Resend(apiKey);
       }
-    } 
   }
 
   async send(data: EmailData): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log({data});
         if (!this.resend) {
           throw new Error('Resend client not initialized. Check RESEND_API_KEY.');
         }

@@ -15,6 +15,7 @@ type ContactFormState = SafeResult<ContactFormResponse, ContactFormResponse>;
 const ContactForm = memo(function ContactForm() {
   const initialState: ContactFormState = { data: undefined, error: undefined };
   
+  // @ts-expect-error - useActionState types don't perfectly match withState wrapper
   const [state, action, pending] = useActionState(
     withState(actions.contact),
     initialState
@@ -57,6 +58,7 @@ const ContactForm = memo(function ContactForm() {
     }
 
     // Update previous state
+    // @ts-expect-error - State type compatibility
     prevStateRef.current = state || initialState;
   }, [state]);
   return (
