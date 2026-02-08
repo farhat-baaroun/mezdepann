@@ -69,7 +69,7 @@ const ContactForm = memo(function ContactForm() {
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">Besoin d'un Épaviste ?</h2>
             <p className="text-gray-500 mb-8">
-              Contactez-nous maintenant pour un devis gratuit. Disponible 24h/24, 7j/7.
+              Contactez-nous maintenant. Disponible 24h/24, 7j/7.
             </p>
 
             <div className="space-y-4">
@@ -141,9 +141,9 @@ const ContactForm = memo(function ContactForm() {
           <div className="bg-charcoal border border-white/10 rounded-2xl p-8 md:p-12">
             <div className="text-center mb-8">
               <span className="inline-block px-4 py-2 bg-accent/10 border border-accent/20 rounded-full text-sm text-accent mb-4">
-                Devis Gratuit
+                Contact
               </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Demandez un Devis</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">Contactez-nous</h2>
               <p className="text-gray-400">
                 Remplissez le formulaire ci-dessous et nous vous recontacterons dans les plus brefs
                 délais.

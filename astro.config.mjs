@@ -5,7 +5,7 @@ import tailwind from '@astrojs/tailwind';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://mezdepann.fr',
-  output: 'static',
+  output: 'hybrid',
   integrations: [
     react(),
     tailwind({
