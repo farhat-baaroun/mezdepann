@@ -1,4 +1,4 @@
-import { defineAction } from 'astro:actions';
+import { defineAction , type SafeResult} from 'astro:actions';
 import { z } from 'astro/zod';
 import { emailService } from './lib/email';
 import ContactEmail from './emails/ContactEmail';
