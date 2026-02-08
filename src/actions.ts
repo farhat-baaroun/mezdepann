@@ -1,4 +1,4 @@
-import { defineAction , type SafeResult} from 'astro:actions';
+import { defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
 import { emailService } from './lib/email';
 import ContactEmail from './emails/ContactEmail';
@@ -18,7 +18,6 @@ export const server = {
       message: z.string().optional(),
     }),
     handler: async ({ nom, telephone, email, vehicule, etat, message }) => {
-      console.log({ nom, telephone, email, vehicule, etat, message });
       // Validate phone format (basic French phone validation)
       const phoneRegex = /^(?:(?:\+|00)33|0)[1-9](?:[.\s-]?[0-9]{2}){4}$/;
       const cleanPhone = telephone.replace(/[\s.-]/g, '');

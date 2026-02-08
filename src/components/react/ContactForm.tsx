@@ -1,29 +1,34 @@
 import { memo, useActionState, useEffect, useRef } from 'react';
 import { actions } from 'astro:actions';
 import { withState } from '@astrojs/react/actions';
+import type { SafeResult } from 'astro:actions';
 import { toast } from 'sonner';
 import { SITE } from '../../config/site';
 
-type ContactFormState = {
-  data: { success: boolean; message: string } | null;
-  error: { message: string } | undefined;
+type ContactFormResponse = {
+  success: boolean;
+  message: string;
 };
 
+type ContactFormState = SafeResult<ContactFormResponse, ContactFormResponse>;
+
 const ContactForm = memo(function ContactForm() {
+  const initialState: ContactFormState = { data: undefined, error: undefined };
+  
   const [state, action, pending] = useActionState(
     withState(actions.contact),
-    { data: null, error: undefined }
+    initialState
   );
   
   // Track previous state to avoid duplicate toasts
-  const prevStateRef = useRef<ContactFormState>({ data: null, error: undefined });
+  const prevStateRef = useRef<ContactFormState>(initialState);
   const hasShownToastRef = useRef(false);
 
   useEffect(() => {
     const prevState = prevStateRef.current;
     
-    // Handle success - only show once when success changes from false/null to true
-    if (state?.data?.success && !prevState?.data?.success) {
+    // Handle success - only show once when success changes from false/undefined to true
+    if (state?.data && !prevState?.data) {
       const message = state.data.message || 'Votre demande a été envoyée avec succès ! Nous vous recontacterons rapidement.';
       toast.success(message, {
         duration: 4000,
@@ -33,8 +38,8 @@ const ContactForm = memo(function ContactForm() {
 
     // Handle errors - only show when error appears or changes
     if (state?.error) {
-      const prevErrorMessage = (prevState?.error as { message?: string })?.message || prevState?.error?.toString();
-      const currentErrorMessage = (state.error as { message?: string })?.message || state.error?.toString();
+      const prevErrorMessage = prevState?.error?.message || prevState?.error?.toString();
+      const currentErrorMessage = state.error?.message || state.error?.toString();
       
       // Only show toast if error message changed or if there was no previous error
       if (!prevState?.error || prevErrorMessage !== currentErrorMessage) {
@@ -47,12 +52,12 @@ const ContactForm = memo(function ContactForm() {
     }
 
     // Reset toast flag when state resets
-    if (!state?.data?.success && !state?.error && hasShownToastRef.current) {
+    if (!state?.data && !state?.error && hasShownToastRef.current) {
       hasShownToastRef.current = false;
     }
 
     // Update previous state
-    prevStateRef.current = state || { data: null, error: undefined };
+    prevStateRef.current = state || initialState;
   }, [state]);
   return (
     <section className="py-24 bg-dark" id="contact">
