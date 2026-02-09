@@ -18,16 +18,6 @@ export const server = {
       message: z.string().optional(),
     }),
     handler: async ({ nom, telephone, email, vehicule, etat, message }) => {
-      // Validate phone format (basic French phone validation)
-      const phoneRegex = /^(?:(?:\+|00)33|0)[1-9](?:[.\s-]?[0-9]{2}){4}$/;
-      const cleanPhone = telephone.replace(/[\s.-]/g, '');
-      if (!phoneRegex.test(cleanPhone)) {
-        throw new ActionError({
-          code: 'BAD_REQUEST',
-          message: 'Format de téléphone invalide au format français (ex: 06 12 34 56 78) ou international (ex: +33 6 12 34 56 78)',
-        });
-      }
-
       try {
         // Generate admin email content
         const adminEmailContent = ContactEmail({
