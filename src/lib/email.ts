@@ -47,7 +47,6 @@ class EmailService {
         return { success: true };
     } catch (error) {
       console.error('Email sending error:', error);
-      // Safely extract error message without using instanceof Error
       const errorMessage = error && typeof error === 'object' && 'message' in error
         ? String(error.message)
         : 'Unknown error occurred';

@@ -97,12 +97,6 @@ export const server = {
         };
       } catch (error) {
         console.error('Error processing form submission:', error);
-        // If it's already an ActionError, re-throw it
-        if (error instanceof ActionError) {
-          throw error;
-        }
-        // Otherwise, wrap it in an ActionError
-        // Safely extract message without using instanceof Error
         const errorMessage = error && typeof error === 'object' && 'message' in error
           ? String(error.message)
           : 'Une erreur est survenue lors de l\'envoi de votre demande';
