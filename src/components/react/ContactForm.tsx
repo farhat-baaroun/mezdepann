@@ -1,5 +1,5 @@
 import { memo, useActionState, useEffect, useRef } from 'react';
-import { actions, isInputError } from 'astro:actions';
+import { actions, isInputError, isActionError } from 'astro:actions';
 import { withState } from '@astrojs/react/actions';
 import type { SafeResult } from 'astro:actions';
 import { toast } from 'sonner';
@@ -24,6 +24,7 @@ const ContactForm = memo(function ContactForm() {
   const prevStateRef = useRef<ContactFormState>(initialState);
   const hasShownToastRef = useRef(false);
 
+
   useEffect(() => {
     const prevState = prevStateRef.current;
     
@@ -39,8 +40,13 @@ const ContactForm = memo(function ContactForm() {
     // Handle errors - only show when error appears or changes
     // Don't show toast for input validation errors (they're shown inline)
     if (state?.error && !isInputError(state.error)) {
-      const prevErrorMessage = prevState?.error?.message || prevState?.error?.toString();
-      const currentErrorMessage = state.error?.message || state.error?.toString();
+      // Use isActionError() utility as recommended by Astro docs
+      const prevErrorMessage = isActionError(prevState?.error) 
+        ? prevState.error.message 
+        : prevState?.error?.toString() || '';
+      const currentErrorMessage = isActionError(state.error)
+        ? state.error.message
+        : state.error?.toString() || '';
       
       // Only show toast if error message changed or if there was no previous error
       if (!prevState?.error || prevErrorMessage !== currentErrorMessage) {
@@ -155,7 +161,7 @@ const ContactForm = memo(function ContactForm() {
               </p>
             </div>
 
-            <form action={action} className="space-y-6">
+            <form action={action} method="POST" className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                      <div>
                        <label htmlFor="nom" className="block text-sm font-medium text-gray-300 mb-2">
