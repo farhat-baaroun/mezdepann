@@ -56,7 +56,7 @@ const ContactForm = memo(function ContactForm() {
     if (!state?.data && !state?.error && hasShownToastRef.current) {
       hasShownToastRef.current = false;
     }
-    console.log({state  , currentState: prevStateRef.current});
+
     // Update previous state
     prevStateRef.current = state || initialState;
   }, [state]);

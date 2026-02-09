@@ -11,7 +11,18 @@ export const server = {
     accept: 'form',
     input: z.object({
       nom: z.string().min(1, 'Le nom est requis'),
-      telephone: z.string().min(1, 'Le téléphone est requis'),
+      telephone: z.string()
+        .min(1, 'Le téléphone est requis')
+        .refine(
+          (val) => {
+            const phoneRegex = /^(?:(?:\+|00)33|0)[1-9](?:[.\s-]?[0-9]{2}){4}$/;
+            const cleanPhone = val.replace(/[\s.-]/g, '');
+            return phoneRegex.test(cleanPhone);
+          },
+          {
+            message: 'Format de téléphone invalide au format français (ex: 06 12 34 56 78) ou international (ex: +33 6 12 34 56 78)',
+          }
+        ),
       email: z.string().email('Format d\'email invalide'),
       vehicule: z.string().min(1, 'Le type de véhicule est requis'),
       etat: z.string().min(1, 'L\'état du véhicule est requis'),
@@ -19,6 +30,7 @@ export const server = {
     }),
     handler: async ({ nom, telephone, email, vehicule, etat, message }) => {
       try {
+        // Phone validation is now handled by Zod schema above
         // Generate admin email content
         const adminEmailContent = ContactEmail({
           nom,
@@ -87,9 +99,25 @@ export const server = {
         };
       } catch (error) {
         console.error('Error processing form submission:', error);
-        const errorMessage = error && typeof error === 'object' && 'message' in error
-          ? String(error.message)
-          : 'Une erreur est survenue lors de l\'envoi de votre demande';
+        
+        // Always create a new ActionError to ensure proper serialization
+        // Extract error message safely without instanceof checks
+        let errorMessage = 'Une erreur est survenue lors de l\'envoi de votre demande';
+        
+        if (error) {
+          if (typeof error === 'string') {
+            errorMessage = error;
+          } else if (typeof error === 'object') {
+            // Check if it's an ActionError-like object
+            if ('message' in error && typeof error.message === 'string') {
+              errorMessage = error.message;
+            } else if ('code' in error && 'message' in error) {
+              // It's already an ActionError-like object, extract message
+              errorMessage = String(error.message || 'Une erreur est survenue');
+            }
+          }
+        }
+        
         throw new ActionError({
           code: 'INTERNAL_SERVER_ERROR',
           message: errorMessage,
