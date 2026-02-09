@@ -1,5 +1,5 @@
 import { memo, useActionState, useEffect, useRef } from 'react';
-import { actions, isInputError, isActionError } from 'astro:actions';
+import { actions, isInputError } from 'astro:actions';
 import { withState } from '@astrojs/react/actions';
 import type { SafeResult } from 'astro:actions';
 import { toast } from 'sonner';
@@ -40,13 +40,24 @@ const ContactForm = memo(function ContactForm() {
     // Handle errors - only show when error appears or changes
     // Don't show toast for input validation errors (they're shown inline)
     if (state?.error && !isInputError(state.error)) {
-      // Use isActionError() utility as recommended by Astro docs
-      const prevErrorMessage = isActionError(prevState?.error) 
-        ? prevState.error.message 
-        : prevState?.error?.toString() || '';
-      const currentErrorMessage = isActionError(state.error)
-        ? state.error.message
-        : state.error?.toString() || '';
+      // Safely extract error message without using instanceof or isActionError
+      // Check for error properties directly to avoid serialization issues
+      const getErrorMessage = (err: any): string => {
+        if (!err) return '';
+        if (typeof err === 'string') return err;
+        if (typeof err === 'object') {
+          if ('message' in err && typeof err.message === 'string') {
+            return err.message;
+          }
+          if ('toString' in err && typeof err.toString === 'function') {
+            return String(err.toString());
+          }
+        }
+        return String(err);
+      };
+      
+      const prevErrorMessage = getErrorMessage(prevState?.error);
+      const currentErrorMessage = getErrorMessage(state.error);
       
       // Only show toast if error message changed or if there was no previous error
       if (!prevState?.error || prevErrorMessage !== currentErrorMessage) {

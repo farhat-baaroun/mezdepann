@@ -100,24 +100,33 @@ export const server = {
       } catch (error) {
         console.error('Error processing form submission:', error);
         
-        // Always create a new ActionError to ensure proper serialization
-        // Extract error message safely without instanceof checks
+        // Always create a new ActionError with a plain string message
+        // This ensures proper serialization without instanceof issues
         let errorMessage = 'Une erreur est survenue lors de l\'envoi de votre demande';
         
+        // Safely extract error message without any instanceof checks
         if (error) {
           if (typeof error === 'string') {
             errorMessage = error;
-          } else if (typeof error === 'object') {
-            // Check if it's an ActionError-like object
-            if ('message' in error && typeof error.message === 'string') {
-              errorMessage = error.message;
-            } else if ('code' in error && 'message' in error) {
-              // It's already an ActionError-like object, extract message
-              errorMessage = String(error.message || 'Une erreur est survenue');
+          } else if (typeof error === 'object' && error !== null) {
+            // Check for message property directly
+            if ('message' in error) {
+              const msg = error.message;
+              if (typeof msg === 'string') {
+                errorMessage = msg;
+              } else {
+                errorMessage = String(msg);
+              }
+            } else {
+              // Fallback to string conversion
+              errorMessage = String(error);
             }
+          } else {
+            errorMessage = String(error);
           }
         }
         
+        // Always create a fresh ActionError to avoid serialization issues
         throw new ActionError({
           code: 'INTERNAL_SERVER_ERROR',
           message: errorMessage,
