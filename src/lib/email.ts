@@ -23,7 +23,10 @@ class EmailService {
   async send(data: EmailData): Promise<{ success: boolean; error?: string }> {
     try {
         if (!this.resend) {
-          throw new Error('Resend client not initialized. Check RESEND_API_KEY.');
+          return {
+            success: false,
+            error: 'Resend client not initialized. Check RESEND_API_KEY.',
+          };
         }
 
         const result = await this.resend.emails.send({
@@ -35,15 +38,22 @@ class EmailService {
         });
 
         if (result.error) {
-          throw new Error(result.error.message || 'Failed to send email via Resend');
+          return {
+            success: false,
+            error: result.error.message || 'Failed to send email via Resend',
+          };
         }
 
         return { success: true };
     } catch (error) {
       console.error('Email sending error:', error);
+      // Safely extract error message without using instanceof Error
+      const errorMessage = error && typeof error === 'object' && 'message' in error
+        ? String(error.message)
+        : 'Unknown error occurred';
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error: errorMessage,
       };
     }
   }
