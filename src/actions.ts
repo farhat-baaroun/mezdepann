@@ -1,4 +1,4 @@
-import { defineAction } from 'astro:actions';
+import { defineAction, ActionError } from 'astro:actions';
 import { z } from 'astro/zod';
 import { emailService } from './lib/email';
 import ContactEmail from './emails/ContactEmail';
@@ -22,7 +22,10 @@ export const server = {
       const phoneRegex = /^(?:(?:\+|00)33|0)[1-9](?:[.\s-]?[0-9]{2}){4}$/;
       const cleanPhone = telephone.replace(/[\s.-]/g, '');
       if (!phoneRegex.test(cleanPhone)) {
-        throw new Error('Format de téléphone invalide au format français (ex: 06 12 34 56 78) ou international (ex: +33 6 12 34 56 78)');
+        throw new ActionError({
+          code: 'BAD_REQUEST',
+          message: 'Format de téléphone invalide au format français (ex: 06 12 34 56 78) ou international (ex: +33 6 12 34 56 78)',
+        });
       }
 
       try {
@@ -58,7 +61,10 @@ export const server = {
 
         if (!adminResult.success) {
           console.error('Failed to send admin email:', adminResult.error);
-          throw new Error('Une erreur est survenue lors de l\'envoi de votre demande');
+          throw new ActionError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Une erreur est survenue lors de l\'envoi de votre demande',
+          });
         }
 
         // Send client confirmation email
@@ -91,9 +97,19 @@ export const server = {
         };
       } catch (error) {
         console.error('Error processing form submission:', error);
-        throw error instanceof Error
-          ? error
-          : new Error('Une erreur est survenue lors de l\'envoi de votre demande');
+        // If it's already an ActionError, re-throw it
+        if (error instanceof ActionError) {
+          throw error;
+        }
+        // Otherwise, wrap it in an ActionError
+        // Safely extract message without using instanceof Error
+        const errorMessage = error && typeof error === 'object' && 'message' in error
+          ? String(error.message)
+          : 'Une erreur est survenue lors de l\'envoi de votre demande';
+        throw new ActionError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: errorMessage,
+        });
       }
     },
   }),
