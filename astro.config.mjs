@@ -3,11 +3,16 @@ import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 
 import vercel from '@astrojs/vercel';
+import node from '@astrojs/node';
+
+// Use Node adapter for local preview (astro preview doesn't work with Vercel adapter)
+const useNodeAdapter = process.argv.includes('--node');
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://mezdepann.fr',
-  output: 'static',
+  // Node adapter requires server output for Astro Actions (contact form)
+  output: useNodeAdapter ? 'server' : 'static',
 
   integrations: [
     react(),
@@ -70,5 +75,5 @@ export default defineConfig({
     },
   },
 
-  adapter: vercel(),
+  adapter: useNodeAdapter ? node({ mode: 'standalone' }) : vercel(),
 });
