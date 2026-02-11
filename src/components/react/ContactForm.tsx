@@ -1,5 +1,5 @@
 import { memo, useActionState, useEffect, useRef } from 'react';
-import { actions, isInputError } from 'astro:actions';
+import { actions } from 'astro:actions';
 import { withState } from '@astrojs/react/actions';
 import type { SafeResult } from 'astro:actions';
 import { toast } from 'sonner';
@@ -11,6 +11,26 @@ type ContactFormResponse = {
 };
 
 type ContactFormState = SafeResult<ContactFormResponse, ContactFormResponse>;
+
+/** Safely check if error is input validation error - avoids any instanceof/constructor issues */
+function safeIsInputError(err: unknown): err is { type: string; fields: Record<string, string[]> } {
+  try {
+    return !!(err && typeof err === 'object' && 'type' in err && (err as { type: string }).type === 'AstroActionInputError' && 'fields' in err);
+  } catch {
+    return false;
+  }
+}
+
+/** Safely extract error message - never uses instanceof */
+function getErrorMessage(err: unknown): string {
+  if (!err) return '';
+  if (typeof err === 'string') return err;
+  if (typeof err === 'object' && err !== null && 'message' in err) {
+    const msg = (err as { message: unknown }).message;
+    return typeof msg === 'string' ? msg : String(msg ?? err);
+  }
+  return String(err);
+}
 
 const ContactForm = memo(function ContactForm() {
   const initialState: ContactFormState = { data: undefined, error: undefined };
@@ -39,26 +59,10 @@ const ContactForm = memo(function ContactForm() {
 
     // Handle errors - only show when error appears or changes
     // Don't show toast for input validation errors (they're shown inline)
-    if (state?.error && !isInputError(state.error)) {
-      // Safely extract error message without using instanceof or isActionError
-      // Check for error properties directly to avoid serialization issues
-      const getErrorMessage = (err: any): string => {
-        if (!err) return '';
-        if (typeof err === 'string') return err;
-        if (typeof err === 'object') {
-          if ('message' in err && typeof err.message === 'string') {
-            return err.message;
-          }
-          if ('toString' in err && typeof err.toString === 'function') {
-            return String(err.toString());
-          }
-        }
-        return String(err);
-      };
-      
+    if (state?.error && !safeIsInputError(state.error)) {
       const prevErrorMessage = getErrorMessage(prevState?.error);
       const currentErrorMessage = getErrorMessage(state.error);
-      
+
       // Only show toast if error message changed or if there was no previous error
       if (!prevState?.error || prevErrorMessage !== currentErrorMessage) {
         const errorMessage = currentErrorMessage || 'Une erreur est survenue. Veuillez réessayer.';
@@ -78,8 +82,8 @@ const ContactForm = memo(function ContactForm() {
     prevStateRef.current = state || initialState;
   }, [state]);
 
-  // Extract field errors if it's an input error
-  const fieldErrors = isInputError(state?.error) ? state.error.fields : {};
+  // Extract field errors - use safe check to avoid instanceof/serialization issues
+  const fieldErrors = safeIsInputError(state?.error) ? state.error.fields : {};
   return (
     <section className="py-24 bg-dark" id="contact">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -174,143 +178,143 @@ const ContactForm = memo(function ContactForm() {
 
             <form action={action} method="POST" className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
-                     <div>
-                       <label htmlFor="nom" className="block text-sm font-medium text-gray-300 mb-2">
-                         Nom
-                       </label>
-                       <input
-                         type="text"
-                         id="nom"
-                         name="nom"
-                         required
+                <div>
+                  <label htmlFor="nom" className="block text-sm font-medium text-gray-300 mb-2">
+                    Nom
+                  </label>
+                  <input
+                    type="text"
+                    id="nom"
+                    name="nom"
+                    required
                          className={`w-full px-4 py-3 bg-dark border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-1 transition-colors ${
                            fieldErrors.nom
                              ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                              : 'border-white/10 focus:border-accent focus:ring-accent'
                          }`}
-                         placeholder="Votre nom"
-                       />
+                    placeholder="Votre nom"
+                  />
                        {fieldErrors.nom && (
                          <p className="mt-1 text-sm text-red-400">{fieldErrors.nom.join(', ')}</p>
                        )}
-                     </div>
-                     <div>
-                       <label
-                         htmlFor="telephone"
-                         className="block text-sm font-medium text-gray-300 mb-2"
-                       >
-                         Téléphone
-                       </label>
-                       <input
-                         type="tel"
-                         id="telephone"
-                         name="telephone"
-                         required
+                </div>
+                <div>
+                  <label
+                    htmlFor="telephone"
+                    className="block text-sm font-medium text-gray-300 mb-2"
+                  >
+                    Téléphone
+                  </label>
+                  <input
+                    type="tel"
+                    id="telephone"
+                    name="telephone"
+                    required
                          className={`w-full px-4 py-3 bg-dark border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-1 transition-colors ${
                            fieldErrors.telephone
                              ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                              : 'border-white/10 focus:border-accent focus:ring-accent'
                          }`}
-                         placeholder="06 12 34 56 78"
-                       />
+                    placeholder="06 12 34 56 78"
+                  />
                        {fieldErrors.telephone && (
                          <p className="mt-1 text-sm text-red-400">{fieldErrors.telephone.join(', ')}</p>
                        )}
-                     </div>
+                </div>
               </div>
 
-                     <div>
-                       <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                         Email
-                       </label>
-                       <input
-                         type="email"
-                         id="email"
-                         name="email"
-                         required
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  required
                          className={`w-full px-4 py-3 bg-dark border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-1 transition-colors ${
                            fieldErrors.email
                              ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                              : 'border-white/10 focus:border-accent focus:ring-accent'
                          }`}
-                         placeholder="votre@email.fr"
-                       />
+                  placeholder="votre@email.fr"
+                />
                        {fieldErrors.email && (
                          <p className="mt-1 text-sm text-red-400">{fieldErrors.email.join(', ')}</p>
                        )}
-                     </div>
+              </div>
 
-                     <div>
-                       <label htmlFor="vehicule" className="block text-sm font-medium text-gray-300 mb-2">
-                         Type de véhicule
-                       </label>
-                       <select
-                         id="vehicule"
-                         name="vehicule"
-                         required
+              <div>
+                <label htmlFor="vehicule" className="block text-sm font-medium text-gray-300 mb-2">
+                  Type de véhicule
+                </label>
+                <select
+                  id="vehicule"
+                  name="vehicule"
+                  required
                          className={`w-full px-4 py-3 bg-dark border rounded-lg text-white focus:outline-none focus:ring-1 transition-colors ${
                            fieldErrors.vehicule
                              ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                              : 'border-white/10 focus:border-accent focus:ring-accent'
                          }`}
-                       >
-                         <option value="">Sélectionnez un type</option>
-                         <option value="voiture">Voiture</option>
-                         <option value="moto">Moto / Scooter</option>
-                         <option value="utilitaire">Utilitaire</option>
-                         <option value="autre">Autre</option>
-                       </select>
+                >
+                  <option value="">Sélectionnez un type</option>
+                  <option value="voiture">Voiture</option>
+                  <option value="moto">Moto / Scooter</option>
+                  <option value="utilitaire">Utilitaire</option>
+                  <option value="autre">Autre</option>
+                </select>
                        {fieldErrors.vehicule && (
                          <p className="mt-1 text-sm text-red-400">{fieldErrors.vehicule.join(', ')}</p>
                        )}
-                     </div>
+              </div>
 
-                     <div>
-                       <label htmlFor="etat" className="block text-sm font-medium text-gray-300 mb-2">
-                         État du véhicule
-                       </label>
-                       <select
-                         id="etat"
-                         name="etat"
-                         required
+              <div>
+                <label htmlFor="etat" className="block text-sm font-medium text-gray-300 mb-2">
+                  État du véhicule
+                </label>
+                <select
+                  id="etat"
+                  name="etat"
+                  required
                          className={`w-full px-4 py-3 bg-dark border rounded-lg text-white focus:outline-none focus:ring-1 transition-colors ${
                            fieldErrors.etat
                              ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                              : 'border-white/10 focus:border-accent focus:ring-accent'
                          }`}
-                       >
-                         <option value="">Sélectionnez l'état</option>
-                         <option value="accidente">Accidenté</option>
-                         <option value="hors-service">Hors service</option>
-                         <option value="sans-ct">Sans contrôle technique</option>
-                         <option value="brule">Brûlé</option>
-                         <option value="immerge">Immergé</option>
-                         <option value="autre">Autre</option>
-                       </select>
+                >
+                  <option value="">Sélectionnez l'état</option>
+                  <option value="accidente">Accidenté</option>
+                  <option value="hors-service">Hors service</option>
+                  <option value="sans-ct">Sans contrôle technique</option>
+                  <option value="brule">Brûlé</option>
+                  <option value="immerge">Immergé</option>
+                  <option value="autre">Autre</option>
+                </select>
                        {fieldErrors.etat && (
                          <p className="mt-1 text-sm text-red-400">{fieldErrors.etat.join(', ')}</p>
                        )}
-                     </div>
+              </div>
 
-                     <div>
-                       <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
-                         Message (optionnel)
-                       </label>
-                       <textarea
-                         id="message"
-                         name="message"
-                         rows={4}
+              <div>
+                <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
+                  Message (optionnel)
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows={4}
                          className={`w-full px-4 py-3 bg-dark border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-1 transition-colors resize-none ${
                            fieldErrors.message
                              ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                              : 'border-white/10 focus:border-accent focus:ring-accent'
                          }`}
-                         placeholder="Décrivez votre situation..."
-                       />
+                  placeholder="Décrivez votre situation..."
+                />
                        {fieldErrors.message && (
                          <p className="mt-1 text-sm text-red-400">{fieldErrors.message.join(', ')}</p>
                        )}
-                     </div>
+              </div>
 
               <button
                 type="submit"
