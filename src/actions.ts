@@ -6,23 +6,19 @@ import ClientConfirmationEmail from './emails/ClientConfirmationEmail';
 import { render } from '@react-email/render';
 import { SITE } from './config/site';
 
+// Phone regex for French format - validation moved to handler to avoid ZodEffects/formDataToObject issues
+const PHONE_REGEX = /^(?:(?:\+|00)33|0)[1-9](?:[.\s-]?[0-9]{2}){4}$/;
+function isValidFrenchPhone(val: string): boolean {
+  const clean = val.replace(/[\s.-]/g, '');
+  return PHONE_REGEX.test(clean);
+}
+
 export const server = {
   contact: defineAction({
     accept: 'form',
     input: z.object({
       nom: z.string().min(1, 'Le nom est requis'),
-      telephone: z.string()
-        .min(1, 'Le téléphone est requis')
-        .refine(
-          (val) => {
-            const phoneRegex = /^(?:(?:\+|00)33|0)[1-9](?:[.\s-]?[0-9]{2}){4}$/;
-            const cleanPhone = val.replace(/[\s.-]/g, '');
-            return phoneRegex.test(cleanPhone);
-          },
-          {
-            message: 'Format de téléphone invalide au format français (ex: 06 12 34 56 78) ou international (ex: +33 6 12 34 56 78)',
-          }
-        ),
+      telephone: z.string().min(1, 'Le téléphone est requis'),
       email: z.string().email('Format d\'email invalide'),
       vehicule: z.string().min(1, 'Le type de véhicule est requis'),
       etat: z.string().min(1, 'L\'état du véhicule est requis'),
@@ -30,7 +26,13 @@ export const server = {
     }),
     handler: async ({ nom, telephone, email, vehicule, etat, message }) => {
       try {
-        // Phone validation is now handled by Zod schema above
+        // Phone validation in handler (Zod .refine() can cause formDataToObject instanceof issues)
+        if (!isValidFrenchPhone(telephone)) {
+          throw new ActionError({
+            code: 'BAD_REQUEST',
+            message: 'Format de téléphone invalide (ex: 06 12 34 56 78 ou +33 6 12 34 56 78)',
+          });
+        }
         // Generate admin email content
         const adminEmailContent = ContactEmail({
           nom,
@@ -98,35 +100,34 @@ export const server = {
           message: 'Votre demande a été envoyée avec succès',
         };
       } catch (error) {
+        // Re-throw ActionError as-is (e.g. from validation) - avoids double-wrap
+        if (error && typeof error === 'object' && 'type' in error && (error as { type: string }).type === 'AstroActionError') {
+          throw error;
+        }
+        // Debug: log full error structure when ACTIONS_DEBUG is set
+        if (import.meta.env.ACTIONS_DEBUG) {
+          console.error('[Contact Action] Error details:', {
+            name: error && typeof error === 'object' && 'name' in error ? (error as Error).name : undefined,
+            message: error && typeof error === 'object' && 'message' in error ? (error as Error).message : undefined,
+            constructor: error && typeof error === 'object' ? (error as object).constructor?.name : undefined,
+            keys: error && typeof error === 'object' ? Object.keys(error as object) : [],
+          });
+        }
         console.error('Error processing form submission:', error);
         
-        // Always create a new ActionError with a plain string message
-        // This ensures proper serialization without instanceof issues
-        let errorMessage = 'Une erreur est survenue lors de l\'envoi de votre demande';
-        
         // Safely extract error message without any instanceof checks
+        let errorMessage = 'Une erreur est survenue lors de l\'envoi de votre demande';
         if (error) {
           if (typeof error === 'string') {
             errorMessage = error;
-          } else if (typeof error === 'object' && error !== null) {
-            // Check for message property directly
-            if ('message' in error) {
-              const msg = error.message;
-              if (typeof msg === 'string') {
-                errorMessage = msg;
-              } else {
-                errorMessage = String(msg);
-              }
-            } else {
-              // Fallback to string conversion
-              errorMessage = String(error);
-            }
+          } else if (typeof error === 'object' && error !== null && 'message' in error) {
+            const msg = (error as { message: unknown }).message;
+            errorMessage = typeof msg === 'string' ? msg : String(msg ?? error);
           } else {
             errorMessage = String(error);
           }
         }
         
-        // Always create a fresh ActionError to avoid serialization issues
         throw new ActionError({
           code: 'INTERNAL_SERVER_ERROR',
           message: errorMessage,
